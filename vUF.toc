@@ -1,0 +1,17 @@
+## Interface: 80000
+## Author: Nonus - https://github.com/Nonus
+## Title: |cffFA2384v|rUF
+## Version: 1.0
+## Dependencies: vCore, vMedia
+
+modules\oUF\oUF.xml
+modules\oUF_Smooth\oUF_Smooth.lua
+modules\oUF_Experience\oUF_Experience.lua
+modules\oUF_Reputation\oUF_Reputation.lua
+modules\oUF_ArtifactPower\oUF_ArtifactPower.lua
+
+tags.lua
+cfg.lua
+lib.lua
+unitSpecifics.lua
+core.lua
