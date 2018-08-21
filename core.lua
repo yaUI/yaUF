@@ -184,7 +184,7 @@ local function CreateCastBar(self)
 	}
 end
 
-local function CreateAuras(self)
+local function CreateAuras(self, unit)
 	-------------------
 	-- Debuffs
 	-------------------
@@ -496,11 +496,12 @@ local function Shared(self, unit)
 		end
 		self:Tag(Level, "[level]")
 
-	end
 
-	if unit == 'player' or unit == 'target' then
-		CreateCastBar(self)
-		CreateAuras(self)
+		CreateAuras(self, unit)
+		if unit ~= 'party' then
+			CreateCastBar(self)
+		end
+
 	end
 
 	-------------------
