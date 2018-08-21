@@ -6,6 +6,16 @@ local oUF = ns.oUF or oUF
 assert(oUF, "vUF was unable to locate oUF.")
 --------------
 
+local unpack = unpack
+
+local function kickable(self)
+	if (self.notInterruptible) then
+		self:SetStatusBarColor(unpack(cfg.player.castbar.unkickableColor))
+	else
+		self:SetStatusBarColor(unpack(cfg.player.castbar.color))
+	end
+end
+
 local function ChangedTarget(self, event, unit)
 	if UnitIsUnit('target', self.unit) then
 		self.Targeted:SetBackdropBorderColor(.8, .8, .8, 1)
@@ -15,16 +25,253 @@ local function ChangedTarget(self, event, unit)
 	end
 end
 
+local cvars = {
+  nameplateGlobalScale = 1,
+  NamePlateHorizontalScale = 1,
+  NamePlateVerticalScale = 1,
+  nameplateLargerScale = 1,
+  nameplateMaxScale = 1,
+  nameplateMinScale = 0.8,
+  nameplateSelectedScale = 1,
+  nameplateSelfScale = 1,
+  -- nameplateShowAll = 0,
+  nameplateMinAlpha = 0.5,
+  nameplateMinAlphaDistance = 10,
+  nameplateMaxAlpha = 1,
+  nameplateMaxAlphaDistance = 10,
+  nameplateMaxDistance = 60,
+}
+
+local function getcolor(unit)
+	local reaction = UnitReaction(unit, "player") or 5
+
+	if UnitIsPlayer(unit) then
+		local class = select(2, UnitClass(unit))
+		local color = RAID_CLASS_COLORS[class]
+		return color.r, color.g, color.b
+	elseif UnitCanAttack("player", unit) then
+		if UnitIsDead(unit) then
+			return 136/255, 136/255, 136/255
+		else
+			if reaction<4 then
+				return 1, 68/255, 68/255
+			elseif reaction==4 then
+				return 1, 1, 68/255
+			end
+		end
+	else
+		if reaction<4 then
+			return 48/255, 113/255, 191/255
+		else
+			return 1, 1, 1
+		end
+	end
+end
+
+local function CreateCastBar(self)
+
+	-------------------
+	-- Castbar
+	-------------------
+	local Castbar = CreateFrame("StatusBar", nil, self)
+	Castbar:SetFrameStrata('HIGH')
+	Castbar:SetHeight(cfg.player.castbar.height)
+	Castbar:SetWidth(cfg.player.castbar.width)
+	Castbar:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -7)
+	Castbar:SetStatusBarTexture(cfg.barTexture)
+	Castbar:SetStatusBarColor(unpack(cfg.player.castbar.color))
+
+	if not IsAddOnLoaded("vBars") and unit == 'player' then
+		Castbar:ClearAllPoints()
+		Castbar:SetPoint('BOTTOM', CENTER,'BOTTOM', 0, 330)
+	end
+
+	--Options
+	Castbar.timeToHold = 0.2 --indicates for how many seconds the castbar should be visible after a _FAILED or _INTERRUPTED event
+
+	--Backdrop
+	E:CreateBackdrop(Castbar)
+
+	--Background
+	local CastbarBG = Castbar:CreateTexture(nil, "BACKGROUND")
+	CastbarBG:SetTexture(cfg.barTexture)
+	CastbarBG:SetAllPoints(Castbar)
+	CastbarBG:SetVertexColor(unpack(cfg.player.castbar.colorBg))
+
+	--Spell Time
+	local Time = lib.SetFont(Castbar, 11, "THINOUTLINE")
+	Time:SetPoint("RIGHT", Castbar)
+
+	--Spell Text
+	local Text = lib.SetFont(Castbar, 11, "THINOUTLINE")
+	Text:SetPoint("LEFT", Castbar, 2, 0)
+
+	--Spark
+	local Spark = Castbar:CreateTexture(nil, 'OVERLAY')
+	Spark:SetSize(2, cfg.player.castbar.height - 2)
+	Spark:SetColorTexture(1, 1, 1)
+
+	--SafeZone represents red latency bar on the end of the castbar
+	local SafeZone = Castbar:CreateTexture(nil, 'OVERLAY')
+
+	--Shield represents interrupt shield
+	local Shield = Castbar:CreateTexture(nil, 'OVERLAY')
+	Shield:SetTexture(M:Fetch('vui', 'shield'))
+	Shield:SetSize(32, 32)
+	Shield:SetPoint('CENTER', Castbar)
+
+	--Registration
+	Castbar.bg = CastbarBG
+	Castbar.Spark = Spark
+	Castbar.SafeZone = SafeZone
+	Castbar.Shield = Shield
+	Castbar.Text = Text
+	Castbar.Time = Time
+
+	Castbar.PostChannelStart = kickable
+	Castbar.PostChannelUpdate = kickable
+	Castbar.PostCastStart = kickable
+	Castbar.PostCastDelayed = kickable
+	Castbar.PostCastNotInterruptible = kickable
+	Castbar.PostCastInterruptible = kickable
+
+	self.Castbar = Castbar
+
+
+	-------------------
+	-- Heal Prediction
+	-------------------
+	local myBar = CreateFrame('StatusBar', nil, self.Health)
+	myBar:SetPoint('TOP')
+	myBar:SetPoint('BOTTOM')
+	myBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+	myBar:SetWidth(cfg.player.health.width)
+	myBar:SetStatusBarTexture(cfg.barTexture)
+	myBar:SetStatusBarColor(125/255, 255/255, 50/255, .3)
+
+	local otherBar = CreateFrame('StatusBar', nil, self.Health)
+	otherBar:SetPoint('TOP')
+	otherBar:SetPoint('BOTTOM')
+	otherBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+	otherBar:SetWidth(cfg.player.health.width)
+	otherBar:SetStatusBarTexture(cfg.barTexture)
+	otherBar:SetStatusBarColor(100/255, 235/255, 200/255, .3)
+
+	local absorbBar = CreateFrame('StatusBar', nil, self.Health)
+	absorbBar:SetPoint('TOP')
+	absorbBar:SetPoint('BOTTOM')
+	absorbBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+	absorbBar:SetWidth(cfg.player.health.width)
+	absorbBar:SetStatusBarTexture(cfg.barTexture)
+	absorbBar:SetStatusBarColor(180/255, 255/255, 205/255, .35)
+
+	local healAbsorbBar = CreateFrame('StatusBar', nil, self.Health)
+	healAbsorbBar:SetPoint('TOP')
+	healAbsorbBar:SetPoint('BOTTOM')
+	healAbsorbBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+	healAbsorbBar:SetWidth(cfg.player.health.width)
+	healAbsorbBar:SetStatusBarTexture(cfg.barTexture)
+	healAbsorbBar:SetStatusBarColor(183/255, 244/255, 255/255, .35)
+
+	-- Register with oUF
+	self.HealthPrediction = {
+		myBar = myBar,
+		otherBar = otherBar,
+		absorbBar = absorbBar,
+		healAbsorbBar = healAbsorbBar,
+		maxOverflow = 1.00,
+		frequentUpdates = true,
+	}
+end
+
+local function CreateAuras(self)
+	-------------------
+	-- Debuffs
+	-------------------
+	local Debuffs = CreateFrame("Frame", nil, self)
+
+	--Options
+	Debuffs.size = 21
+	if unit == "player" or unit == 'party' then
+		Debuffs.num = 9
+	elseif unit == "target" then
+		Debuffs.num = 18
+	end
+	Debuffs.spacing = 5
+	Debuffs.onlyShowPlayer = false
+	Debuffs:SetHeight((Debuffs.size+Debuffs.spacing)*2)
+	Debuffs:SetWidth(cfg.player.health.width)
+	Debuffs.PostCreateIcon = lib.PostCreateIcon
+	if unit == 'player' or unit == 'party' then
+		Debuffs.PostUpdateIcon = lib.PostUpdateBuff --Lets not desaturize the debuffs since we wont debuff party members or ourselves
+	else
+		Debuffs.PostUpdateIcon = lib.PostUpdateDebuff
+	end
+
+	if unit == "player" or unit == 'target' then
+		Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 31)
+		Debuffs.initialAnchor = "BOTTOMLEFT"
+		Debuffs["growth-x"] = "RIGHT"
+		Debuffs["growth-y"] = "UP"
+	elseif unit == "party" then
+		Debuffs:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -5)
+		Debuffs.initialAnchor = "TOPLEFT"
+		Debuffs["growth-x"] = "RIGHT"
+		Debuffs["growth-y"] = "DOWN"
+	end
+
+	--Registration
+	self.Debuffs = Debuffs
+
+	-------------------
+	-- Buffs
+	-------------------
+	local Buffs = CreateFrame("Frame", nil, self)
+
+	--Options
+	Buffs.size = 21
+	Buffs.num = 9
+	Buffs.spacing = 5
+	Buffs:SetHeight(Buffs.size+Buffs.spacing)
+	Buffs:SetWidth(cfg.player.health.width)
+
+	if unit == "player" or unit == 'target' then
+		Buffs.onlyShowPlayer = false
+		Buffs.showStealableBuffs = true
+		Buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, 5)
+		Buffs.initialAnchor = "BOTTOMLEFT"
+		Buffs["growth-x"] = "RIGHT"
+		Buffs["growth-y"] = "UP"
+	elseif unit == "party" then
+		Buffs.onlyShowPlayer = true
+		Buffs.showStealableBuffs = false
+		Buffs:SetWidth(cfg.player.health.width)
+		Buffs:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 5, 0)
+		Buffs.initialAnchor = "TOPLEFT"
+		Buffs["growth-x"] = "RIGHT"
+		Buffs["growth-y"] = "DOWN"
+	end
+
+	--Registration
+	Buffs.PostCreateIcon = lib.PostCreateIcon
+	Buffs.PostUpdateIcon = lib.PostUpdateDebuff
+	self.Buffs = Buffs
+end
+
 local function Shared(self, unit)
 	unit = unit:match('^(.-)%d+') or unit
 
 	self:RegisterForClicks('AnyUp')
 	self:SetScript("OnEnter", function(self)
-		self.Highlight:Show()
+		if self.Highlight then
+			self.Highlight:Show()
+		end
 		UnitFrame_OnEnter(self)
 	end)
 	self:SetScript("OnLeave", function(self)
-		self.Highlight:Hide()
+		if self.Highlight then
+			self.Highlight:Hide()
+		end
 		UnitFrame_OnLeave(self)
 	end)
 
@@ -65,21 +312,26 @@ local function Shared(self, unit)
 	-------------------
 	local name, hpval
 
-	if unit == "targettarget" or unit == "focus" or unit == "pet" then
-		name = lib.SetFont(Health, 10, "THINOUTLINE")
-		hpval = lib.SetFont(Health, 10, "THINOUTLINE")
+	name = lib.SetFont(Health, 12, "THINOUTLINE")
+	hpval = lib.SetFont(Health, 12, "THINOUTLINE")
+
+	if unit ~= 'nameplate' then
+
+		name:SetPoint("LEFT", Health, "LEFT", 2, 0)
+		name:SetJustifyH("LEFT")
+		name:SetWordWrap(false)
+
+		hpval:SetPoint("RIGHT", Health, "RIGHT", -2, 0)
+
+		name:SetPoint("RIGHT", hpval, "LEFT", -5, 0)
 	else
-		name = lib.SetFont(Health, 12, "THINOUTLINE")
-		hpval = lib.SetFont(Health, 12, "THINOUTLINE")
+		name:SetTextHeight(10)
+		hpval:SetTextHeight(10)
+		name:SetPoint("BOTTOM", Health, "TOP", 0, 2)
+
+		hpval:SetPoint("CENTER", Health, "CENTER", 0, 0)
 	end
 
-	name:SetPoint("LEFT", Health, "LEFT", 2, 0)
-	name:SetJustifyH("LEFT")
-	name:SetWordWrap(false)
-
-	hpval:SetPoint("RIGHT", Health, "RIGHT", -2, 0)
-
-	name:SetPoint("RIGHT", hpval, "LEFT", -5, 0)
 	self:Tag(name, "[name]")
 
 	if unit == "player" or unit == "target" then
@@ -94,6 +346,7 @@ local function Shared(self, unit)
 	local Power = CreateFrame("StatusBar", nil, self)
 	Power:SetStatusBarTexture(cfg.barTexture)
 	Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -1)
+	Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -1)
 
 	if unit == "targettarget" or unit == "focus" or unit == "pet" then
 		Power:SetHeight(4)
@@ -128,13 +381,30 @@ local function Shared(self, unit)
 
 	--Highlighter on mouseover
 	local Highlight = Health:CreateTexture(nil, "OVERLAY")
-	Highlight:SetAllPoints(self)
+	Highlight:SetAllPoints(Health)
 	Highlight:SetTexture(cfg.whiteSquare)
 	Highlight:SetVertexColor(1, 1, 1, .1)
 	Highlight:SetBlendMode("ADD")
 	Highlight:Hide()
 
 	self.Highlight = Highlight
+
+	if unit == 'player' or unit == 'party' or unit == 'nameplate' then
+
+		-------------------
+		-- Highlight the unit if its our target, makes it easier for healers and general ui feedback
+		-------------------
+		local Targeted = CreateFrame("Frame", nil, self)
+		Targeted:SetPoint("TOPLEFT", Health, "TOPLEFT", 0, 0)
+		Targeted:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", 0, 0)
+		Targeted:SetBackdrop({edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1})
+		Targeted:SetFrameLevel(Health:GetFrameLevel() + 1)
+		Targeted:Hide()
+		self:RegisterEvent('PLAYER_TARGET_CHANGED', ChangedTarget)
+		self:RegisterEvent('RAID_ROSTER_UPDATE', ChangedTarget)
+
+		self.Targeted = Targeted
+	end
 
 	if unit == 'player' or unit == 'target' or unit == 'party' then
 
@@ -156,26 +426,6 @@ local function Shared(self, unit)
 
 		--Registration
 		self.Portrait = Portrait
-
-		if unit == 'player' or unit == 'party' then
-
-			-------------------
-			-- Highlight the unit if its our target, makes it easier for healers and general ui feedback
-			-------------------
-			local Targeted = CreateFrame("Frame", nil, self)
-			Targeted:SetPoint("TOPLEFT", Health, "TOPLEFT", 0, 0)
-			Targeted:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", 0, 0)
-			Targeted:SetBackdrop({edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1})
-			Targeted:SetFrameLevel(Health:GetFrameLevel() + 1)
-			Targeted:Hide()
-			self:RegisterEvent('PLAYER_TARGET_CHANGED', ChangedTarget)
-			self:RegisterEvent('RAID_ROSTER_UPDATE', ChangedTarget)
-
-			self.Targeted = Targeted
-		end
-
-
--- Icons
 
 		-------------------
 		-- Raid Target icon
@@ -246,195 +496,62 @@ local function Shared(self, unit)
 		end
 		self:Tag(Level, "[level]")
 
-----------------------------------------
-
-		-------------------
-		-- Debuffs
-		-------------------
-		local Debuffs = CreateFrame("Frame", nil, self)
-
-		--Options
-		Debuffs.size = 21
-		if unit == "player" or unit == 'party' then
-			Debuffs.num = 9
-		elseif unit == "target" then
-			Debuffs.num = 18
-		end
-		Debuffs.spacing = 5
-		Debuffs.onlyShowPlayer = false
-		Debuffs:SetHeight((Debuffs.size+Debuffs.spacing)*2)
-		Debuffs:SetWidth(cfg.player.health.width)
-		Debuffs.PostCreateIcon = lib.PostCreateIcon
-		if unit == 'player' or unit == 'party' then
-			Debuffs.PostUpdateIcon = lib.PostUpdateBuff --Lets not desaturize the debuffs since we wont debuff party members or ourselves
-		else
-			Debuffs.PostUpdateIcon = lib.PostUpdateDebuff
-		end
-
-		if unit == "player" or unit == 'target' then
-			Debuffs:SetPoint("BOTTOMLEFT", Health, "TOPLEFT", 0, 31)
-			Debuffs.initialAnchor = "BOTTOMLEFT"
-			Debuffs["growth-x"] = "RIGHT"
-			Debuffs["growth-y"] = "UP"
-		elseif unit == "party" then
-			Debuffs:SetPoint("TOPLEFT", Power, "BOTTOMLEFT", 0, -5)
-			Debuffs.initialAnchor = "TOPLEFT"
-			Debuffs["growth-x"] = "RIGHT"
-			Debuffs["growth-y"] = "DOWN"
-		end
-
-		--Registration
-		self.Debuffs = Debuffs
-
-		-------------------
-		-- Buffs
-		-------------------
-		local Buffs = CreateFrame("Frame", nil, self)
-
-		--Options
-		Buffs.size = 21
-		Buffs.num = 9
-		Buffs.spacing = 5
-		Buffs:SetHeight(Buffs.size+Buffs.spacing)
-		Buffs:SetWidth(cfg.player.health.width)
-
-		if unit == "player" or unit == 'target' then
-			Buffs.onlyShowPlayer = false
-			Buffs.showStealableBuffs = true
-			Buffs:SetPoint("BOTTOMLEFT", Health, "TOPLEFT", 0, 5)
-			Buffs.initialAnchor = "BOTTOMLEFT"
-			Buffs["growth-x"] = "RIGHT"
-			Buffs["growth-y"] = "UP"
-		elseif unit == "party" then
-			Buffs.onlyShowPlayer = true
-			Buffs.showStealableBuffs = false
-			Buffs:SetWidth(cfg.player.health.width)
-			Buffs:SetPoint("TOPLEFT", Health, "TOPRIGHT", 5, 0)
-			Buffs.initialAnchor = "TOPLEFT"
-			Buffs["growth-x"] = "RIGHT"
-			Buffs["growth-y"] = "DOWN"
-		end
-
-		--Registration
-		Buffs.PostCreateIcon = lib.PostCreateIcon
-		Buffs.PostUpdateIcon = lib.PostUpdateDebuff
-		self.Buffs = Buffs
-
---player & target exclusive
-
-		if unit == 'player' or unit == 'target' then
-
-			-------------------
-			-- Castbar
-			-------------------
-			local Castbar = CreateFrame("StatusBar", nil, self)
-			Castbar:SetFrameStrata('HIGH')
-			Castbar:SetHeight(cfg.player.castbar.height)
-			Castbar:SetWidth(cfg.player.castbar.width)
-			Castbar:SetPoint("TOPLEFT", Power, "BOTTOMLEFT", 0, -7)
-			Castbar:SetStatusBarTexture(cfg.barTexture)
-			Castbar:SetStatusBarColor(1, 0.8, 0,1)
-
-			if not IsAddOnLoaded("vBars") and unit == 'player' then
-				Castbar:ClearAllPoints()
-				Castbar:SetPoint('BOTTOM', CENTER,'BOTTOM', 0, 330)
-			end
-
-			--Options
-			Castbar.timeToHold = 0.2 --indicates for how many seconds the castbar should be visible after a _FAILED or _INTERRUPTED event
-
-			--Backdrop
-			E:CreateBackdrop(Castbar)
-
-			--Background
-			local CastbarBG = Castbar:CreateTexture(nil, "BACKGROUND")
-			CastbarBG:SetTexture(cfg.barTexture)
-			CastbarBG:SetAllPoints(Castbar)
-			CastbarBG:SetVertexColor(1*0.3, 0.8*0.3, 0,0.7)
-
-			--Spell Time
-			local Time = lib.SetFont(Castbar, 11, "THINOUTLINE")
-			Time:SetPoint("RIGHT", Castbar)
-
-			--Spell Text
-			local Text = lib.SetFont(Castbar, 11, "THINOUTLINE")
-			Text:SetPoint("LEFT", Castbar, 2, 0)
-
-			--Spark
-			local Spark = Castbar:CreateTexture(nil, 'OVERLAY')
-			Spark:SetSize(2, cfg.player.castbar.height - 2)
-			Spark:SetColorTexture(1, 1, 1)
-
-			--SafeZone represents red latency bar on the end of the castbar
-			local SafeZone = Castbar:CreateTexture(nil, 'OVERLAY')
-
-			--Shield represents interrupt shield
-			local Shield = Castbar:CreateTexture(nil, 'OVERLAY')
-			Shield:SetTexture(M:Fetch('vui', 'shield'))
-			Shield:SetSize(32, 32)
-			Shield:SetPoint('CENTER', Castbar)
-
-			--Registration
-			Castbar.bg = CastbarBG
-			Castbar.Spark = Spark
-			Castbar.SafeZone = SafeZone
-			Castbar.Shield = Shield
-			Castbar.Text = Text
-			Castbar.Time = Time
-			self.Castbar = Castbar
-
-			-------------------
-			-- Heal Prediction
-			-------------------
-			local myBar = CreateFrame('StatusBar', nil, Health)
-			myBar:SetPoint('TOP')
-			myBar:SetPoint('BOTTOM')
-			myBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
-			myBar:SetWidth(cfg.player.health.width)
-			myBar:SetStatusBarTexture(cfg.barTexture)
-			myBar:SetStatusBarColor(125/255, 255/255, 50/255, .3)
-
-			local otherBar = CreateFrame('StatusBar', nil, Health)
-			otherBar:SetPoint('TOP')
-			otherBar:SetPoint('BOTTOM')
-			otherBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
-			otherBar:SetWidth(cfg.player.health.width)
-			otherBar:SetStatusBarTexture(cfg.barTexture)
-			otherBar:SetStatusBarColor(100/255, 235/255, 200/255, .3)
-
-			local absorbBar = CreateFrame('StatusBar', nil, Health)
-			absorbBar:SetPoint('TOP')
-			absorbBar:SetPoint('BOTTOM')
-			absorbBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
-			absorbBar:SetWidth(cfg.player.health.width)
-			absorbBar:SetStatusBarTexture(cfg.barTexture)
-			absorbBar:SetStatusBarColor(180/255, 255/255, 205/255, .35)
-
-			local healAbsorbBar = CreateFrame('StatusBar', nil, Health)
-			healAbsorbBar:SetPoint('TOP')
-			healAbsorbBar:SetPoint('BOTTOM')
-			healAbsorbBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
-			healAbsorbBar:SetWidth(cfg.player.health.width)
-			healAbsorbBar:SetStatusBarTexture(cfg.barTexture)
-			healAbsorbBar:SetStatusBarColor(183/255, 244/255, 255/255, .35)
-
-			-- Register with oUF
-			self.HealthPrediction = {
-				myBar = myBar,
-				otherBar = otherBar,
-				absorbBar = absorbBar,
-				healAbsorbBar = healAbsorbBar,
-				maxOverflow = 1.00,
-				frequentUpdates = true,
-			}
-		end
-----------------------------------------
 	end
 
+	if unit == 'player' or unit == 'target' then
+		CreateCastBar(self)
+		CreateAuras(self)
+	end
+
+	-------------------
+	-- Nameplates
+	-------------------
+	if unit == 'nameplate' then
+
+		self:EnableMouse(false)
+		self:SetPoint("CENTER", 0, -10)
+		self.Health:SetHeight(cfg.namePlates.health.height)
+
+		self.Power:SetHeight(cfg.namePlates.frame.height - cfg.namePlates.health.height)
+		self.Power:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, 0)
+		self.Power:SetPoint("TOPRIGHT", self.Health, "BOTTOMRIGHT", 0, 0)
+
+		HealthPowerBD:SetPoint("TOPLEFT", -4, 4)
+		HealthPowerBD:SetPoint("BOTTOMRIGHT", 4, -7)
+
+		local QuestIndicator = self:CreateTexture(nil, 'OVERLAY')
+		QuestIndicator:SetSize(20, 20)
+		QuestIndicator:SetPoint('LEFT', self.Health, 'RIGHT', 2,  0)
+
+		self.QuestIndicator = QuestIndicator
+
+		local RaidTarget = self:CreateTexture(nil, "OVERLAY")
+		RaidTarget:SetSize(24, 24)
+		RaidTarget:SetPoint("RIGHT", self.Health, "LEFT", -2, 0)
+
+		self.RaidTargetIndicator = RaidTarget
+
+		self.Health.colorClass = false
+		self.Health.colorReaction = true
+
+		CreateCastBar(self)
+		CreateAuras(self)
+
+		self.Castbar:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -5)
+		self.Castbar:SetPoint("TOPRIGHT", self.Health, "BOTTOMRIGHT", 0, -5)
+
+		self.Castbar.Time:SetTextHeight(7)
+		self.Castbar.Text:SetTextHeight(7)
+
+		self.Castbar:SetHeight(10)
+		self.Castbar.Spark:SetSize(2, 8)
+	end
 
 	if unit == 'player' or unit == 'target' or unit == 'party' then
 		self:SetSize(cfg.player.health.width, cfg.player.health.height)
-	elseif unit == 'targettarget' or unit == 'focus' or unit == 'pet' then
+	elseif unit == 'nameplate' then
+		self:SetSize(cfg.namePlates.frame.width, cfg.namePlates.frame.height)
+	elseif unit == 'targettarget' or unit == 'focus' or unit == 'pet' or unit == 'nameplate' then
 		self:SetSize(cfg.everythingElse.frame.width, cfg.everythingElse.frame.height)
 	else
 		self:SetSize(300,51) --Nothing should hit this if everything is working right
@@ -445,6 +562,9 @@ local function Shared(self, unit)
 	end
 end
 
+-- -----------------------------------
+-- > SPAWN UNIT
+-- -----------------------------------
 oUF:RegisterStyle("vUF", Shared)
 oUF:Factory(function(self)
 	self:SetActiveStyle('vUF')
@@ -480,5 +600,9 @@ oUF:Factory(function(self)
 	if not IsAddOnLoaded("vBars") then
 		header:ClearAllPoints()
 		header:SetPoint('TOPLEFT', vUF_Player,'BOTTOMLEFT', 0, -40)
+	end
+
+	if cfg.showNameplates then
+		self:SpawnNamePlates('vUF_NamePlate', ChangedTarget, cvars)
 	end
 end)

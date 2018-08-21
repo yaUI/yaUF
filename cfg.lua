@@ -6,6 +6,7 @@ local cfg = CreateFrame("Frame")
 -- Show/hide Blizzard Stuff
 cfg.hideBuffFrame = true -- hide Blizzard's default buff frame (best to keep it on until you can cancel buffs in oUF again)
 cfg.hideRaidframe = false -- hide Blizzard's default raid frames
+cfg.showNameplates = true
 
 cfg.everythingElse = {
 	frame = {
@@ -15,6 +16,17 @@ cfg.everythingElse = {
 	health = {
 		width = 100,
 		height = 17
+	}
+}
+
+cfg.namePlates = {
+	frame = {
+		width = 100,
+		height = 15
+	},
+	health = {
+		width = 100,
+		height = 12
 	}
 }
 
@@ -29,6 +41,9 @@ cfg.player = {
 		partyHeight = 63
 	},
 	castbar = {
+		color = {1, 0.8, 0, 1},
+		unkickableColor = {.7, .7, .7, 1},
+		colorBg = {1*0.3, 0.8*0.3, 0, 0.7},
 		width = 229,
 		height = 18
 	},
