@@ -68,7 +68,7 @@ local function getcolor(unit)
 	end
 end
 
-local function CreateCastBar(self)
+local function CreateCastBar(self, unit)
 
 	-------------------
 	-- Castbar
@@ -82,6 +82,7 @@ local function CreateCastBar(self)
 	Castbar:SetStatusBarColor(unpack(cfg.player.castbar.color))
 
 	if not IsAddOnLoaded("vBars") and unit == 'player' then
+		Castbar:SetHeight(cfg.player.health.height)
 		Castbar:ClearAllPoints()
 		Castbar:SetPoint('BOTTOM', CENTER,'BOTTOM', 0, 330)
 	end
@@ -499,7 +500,7 @@ local function Shared(self, unit)
 
 		CreateAuras(self, unit)
 		if unit ~= 'party' then
-			CreateCastBar(self)
+			CreateCastBar(self, unit)
 		end
 
 	end
@@ -535,8 +536,8 @@ local function Shared(self, unit)
 		self.Health.colorClass = false
 		self.Health.colorReaction = true
 
-		CreateCastBar(self)
-		CreateAuras(self)
+		CreateCastBar(self, unit)
+		CreateAuras(self, unit)
 
 		self.Castbar:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -5)
 		self.Castbar:SetPoint("TOPRIGHT", self.Health, "BOTTOMRIGHT", 0, -5)
