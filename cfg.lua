@@ -41,6 +41,7 @@ cfg.player = {
 	}
 }
 
+cfg.whiteSquare = M:Fetch("vui", "backdrop")
 cfg.barTexture = M:Fetch("vui", "statusbar")
 cfg.font = M:Fetch("font", "RobotoBold")
 

@@ -6,10 +6,27 @@ local oUF = ns.oUF or oUF
 assert(oUF, "vUF was unable to locate oUF.")
 --------------
 
+local function ChangedTarget(self, event, unit)
+	if UnitIsUnit('target', self.unit) then
+		self.Targeted:SetBackdropBorderColor(.8, .8, .8, 1)
+		self.Targeted:Show()
+	else
+		self.Targeted:Hide()
+	end
+end
+
 local function Shared(self, unit)
 	unit = unit:match('^(.-)%d+') or unit
 
 	self:RegisterForClicks('AnyUp')
+	self:SetScript("OnEnter", function(self)
+		self.Highlight:Show()
+		UnitFrame_OnEnter(self)
+	end)
+	self:SetScript("OnLeave", function(self)
+		self.Highlight:Hide()
+		UnitFrame_OnLeave(self)
+	end)
 
 	-------------------
 	-- Health
@@ -24,9 +41,6 @@ local function Shared(self, unit)
 		Health:SetHeight(cfg.player.health.height)
 		Health:SetWidth(cfg.player.health.width)
 	end
-
-	self:SetScript('OnEnter', function() Health:SetAlpha(.8) end)
-	self:SetScript('OnLeave', function() Health:SetAlpha(1) end)
 
 	--Options
 	Health.frequentUpdates = true
@@ -112,6 +126,16 @@ local function Shared(self, unit)
 
 	E:SkinBackdrop(HealthPowerBD)
 
+	--Highlighter on mouseover
+	local Highlight = Health:CreateTexture(nil, "OVERLAY")
+	Highlight:SetAllPoints(self)
+	Highlight:SetTexture(cfg.whiteSquare)
+	Highlight:SetVertexColor(1, 1, 1, .1)
+	Highlight:SetBlendMode("ADD")
+	Highlight:Hide()
+
+	self.Highlight = Highlight
+
 	if unit == 'player' or unit == 'target' or unit == 'party' then
 
 		-------------------
@@ -133,14 +157,32 @@ local function Shared(self, unit)
 		--Registration
 		self.Portrait = Portrait
 
+		if unit == 'player' or unit == 'party' then
+
+			-------------------
+			-- Highlight the unit if its our target, makes it easier for healers and general ui feedback
+			-------------------
+			local Targeted = CreateFrame("Frame", nil, self)
+			Targeted:SetPoint("TOPLEFT", Health, "TOPLEFT", 0, 0)
+			Targeted:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", 0, 0)
+			Targeted:SetBackdrop({edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1})
+			Targeted:SetFrameLevel(Health:GetFrameLevel() + 1)
+			Targeted:Hide()
+			self:RegisterEvent('PLAYER_TARGET_CHANGED', ChangedTarget)
+			self:RegisterEvent('RAID_ROSTER_UPDATE', ChangedTarget)
+
+			self.Targeted = Targeted
+		end
+
+
 -- Icons
 
 		-------------------
 		-- Raid Target icon
 		-------------------
 		local RaidTarget = self:CreateTexture(nil, "OVERLAY")
-		RaidTarget:SetHeight(16)
-		RaidTarget:SetWidth(16)
+		RaidTarget:SetHeight(24)
+		RaidTarget:SetWidth(24)
 		RaidTarget:SetPoint("TOP", Portrait, "TOP", 0, 4)
 
 		self.RaidTargetIndicator = RaidTarget
@@ -340,6 +382,51 @@ local function Shared(self, unit)
 			Castbar.Text = Text
 			Castbar.Time = Time
 			self.Castbar = Castbar
+
+			-------------------
+			-- Heal Prediction
+			-------------------
+			local myBar = CreateFrame('StatusBar', nil, Health)
+			myBar:SetPoint('TOP')
+			myBar:SetPoint('BOTTOM')
+			myBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
+			myBar:SetWidth(cfg.player.health.width)
+			myBar:SetStatusBarTexture(cfg.barTexture)
+			myBar:SetStatusBarColor(125/255, 255/255, 50/255, .3)
+
+			local otherBar = CreateFrame('StatusBar', nil, Health)
+			otherBar:SetPoint('TOP')
+			otherBar:SetPoint('BOTTOM')
+			otherBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
+			otherBar:SetWidth(cfg.player.health.width)
+			otherBar:SetStatusBarTexture(cfg.barTexture)
+			otherBar:SetStatusBarColor(100/255, 235/255, 200/255, .3)
+
+			local absorbBar = CreateFrame('StatusBar', nil, Health)
+			absorbBar:SetPoint('TOP')
+			absorbBar:SetPoint('BOTTOM')
+			absorbBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
+			absorbBar:SetWidth(cfg.player.health.width)
+			absorbBar:SetStatusBarTexture(cfg.barTexture)
+			absorbBar:SetStatusBarColor(180/255, 255/255, 205/255, .35)
+
+			local healAbsorbBar = CreateFrame('StatusBar', nil, Health)
+			healAbsorbBar:SetPoint('TOP')
+			healAbsorbBar:SetPoint('BOTTOM')
+			healAbsorbBar:SetPoint('LEFT', Health:GetStatusBarTexture(), 'RIGHT')
+			healAbsorbBar:SetWidth(cfg.player.health.width)
+			healAbsorbBar:SetStatusBarTexture(cfg.barTexture)
+			healAbsorbBar:SetStatusBarColor(183/255, 244/255, 255/255, .35)
+
+			-- Register with oUF
+			self.HealthPrediction = {
+				myBar = myBar,
+				otherBar = otherBar,
+				absorbBar = absorbBar,
+				healAbsorbBar = healAbsorbBar,
+				maxOverflow = 1.00,
+				frequentUpdates = true,
+			}
 		end
 ----------------------------------------
 	end
@@ -380,8 +467,8 @@ oUF:Factory(function(self)
 
 	local header = self:SpawnHeader('vUF_Party', nil, 'party',
 		'oUF-initialConfigFunction', [[
-			self:SetWidth(100)
-			self:SetHeight(30)
+			self:SetWidth(230)
+			self:SetHeight(60)
 		]],
 		'showParty', true,
 		'yOffset', offset,
