@@ -83,7 +83,7 @@ local function CreateCastBar(self, unit)
 	Castbar:SetStatusBarTexture(cfg.barTexture)
 	Castbar:SetStatusBarColor(unpack(cfg.player.castbar.color))
 
-	if not IsAddOnLoaded("vBars") and unit == 'player' then
+	if not IsAddOnLoaded("yaBars") and unit == 'player' then
 		Castbar:SetHeight(cfg.player.health.height)
 		Castbar:ClearAllPoints()
 		Castbar:SetPoint('BOTTOM', CENTER,'BOTTOM', 0, 330)
@@ -582,7 +582,7 @@ end
 oUF:RegisterStyle("yaUF", Shared)
 oUF:Factory(function(self)
 	self:SetActiveStyle('yaUF')
-	if IsAddOnLoaded("vBars") then
+	if IsAddOnLoaded("yaBars") then
 		self:Spawn('player', 'yaUF_Player'):SetPoint('TOPRIGHT', UIParent, 'CENTER', -15, -200)
 		self:Spawn('target', 'yaUF_Target'):SetPoint('TOPLEFT', UIParent, 'CENTER', 15, -200)
 	else
@@ -595,7 +595,7 @@ oUF:Factory(function(self)
 	self:Spawn('targettarget', 'yaUF_TargetTarget'):SetPoint('BOTTOMLEFT', yaUF_Target.Portrait, 'TOPLEFT', 0, 6)
 
 	local offset = -40
-	if not IsAddOnLoaded("vBars") then
+	if not IsAddOnLoaded("yaBars") then
 		offset = offset * -1
 	end
 
@@ -611,7 +611,7 @@ oUF:Factory(function(self)
 	);
 
 	header:SetPoint('BOTTOMRIGHT', yaUF_Player.Health,'BOTTOMLEFT', -200, 0)
-	if not IsAddOnLoaded("vBars") then
+	if not IsAddOnLoaded("yaBars") then
 		header:ClearAllPoints()
 		header:SetPoint('TOPLEFT', yaUF_Player,'BOTTOMLEFT', 0, -40)
 	end

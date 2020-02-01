@@ -1,5 +1,5 @@
 local addon, ns = ...
-local E, M = unpack(vCore);
+local E, M = unpack(yaCore);
 local cfg = ns.cfg
 local lib = CreateFrame("Frame")
 --------------
