@@ -17,6 +17,8 @@ local function kickable(self)
 end
 
 local function ChangedTarget(self, event, unit)
+	if not self then return end
+
 	if UnitIsUnit('target', self.unit) then
 		self.Targeted:SetBackdropBorderColor(.8, .8, .8, 1)
 		self.Targeted:Show()
@@ -401,8 +403,8 @@ local function Shared(self, unit)
 		Targeted:SetBackdrop({edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1})
 		Targeted:SetFrameLevel(Health:GetFrameLevel() + 1)
 		Targeted:Hide()
-		self:RegisterEvent('PLAYER_TARGET_CHANGED', ChangedTarget)
-		self:RegisterEvent('RAID_ROSTER_UPDATE', ChangedTarget)
+		self:RegisterEvent('PLAYER_TARGET_CHANGED', ChangedTarget, true)
+		self:RegisterEvent('RAID_ROSTER_UPDATE', ChangedTarget, true)
 
 		self.Targeted = Targeted
 	end
@@ -501,6 +503,16 @@ local function Shared(self, unit)
 		CreateAuras(self, unit)
 		if unit ~= 'party' then
 			CreateCastBar(self, unit)
+		end
+
+	end
+
+	if unit == 'target' or unit == 'party' then
+
+		if UnitInRange(unit) then
+			--self:SetAlpha(1)
+		else
+			--self:SetAlpha(.7)
 		end
 
 	end

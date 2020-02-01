@@ -1,3 +1,16 @@
+### Changes in 80100.27-Release:
+
+- Changed: Updated event logic for oUF 9.0 (thanks @Rainrider)
+- Changed: Update Interface version
+
+### Changes in 80000.26-Release:
+
+- Added: Honor level to tooltip
+- Added: Level tag
+- Fixed: Visibility not updating on expansion launch
+- Fixed: Visibility not updating upon reaching max honor level
+- Removed: Deprecated honor rested support
+
 ### Changes in 80000.25-Release:
 
 - Fixed: Errors when mouse is disabled

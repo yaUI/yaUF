@@ -1,7 +1,7 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: oUF ArtifactPower
 ## Author: Rainrider
-## Version: 1.0.10
+## Version: @project-version@
 ## Notes: Artifact/Azerite power bar support for oUF layouts.
 ## RequiredDeps: oUF
 
