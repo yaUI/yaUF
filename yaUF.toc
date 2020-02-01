@@ -1,8 +1,8 @@
 ## Interface: 80000
-## Author: Nonus - https://github.com/Nonus
-## Title: |cffFA2384v|rUF
+## Author: Lofbergio - https://github.com/lofbergio
+## Title: |cffFA2384ya|rUF
 ## Version: 1.0
-## Dependencies: vCore, vMedia
+## Dependencies: yaCore, yaMedia
 
 modules\oUF\oUF.xml
 modules\oUF_Smooth\oUF_Smooth.lua

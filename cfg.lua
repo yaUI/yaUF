@@ -1,5 +1,5 @@
 local addon, ns = ...
-local E, M = unpack(vCore);
+local E, M = unpack(yaCore);
 local cfg = CreateFrame("Frame")
 --------------
 
@@ -56,8 +56,8 @@ cfg.player = {
 	}
 }
 
-cfg.whiteSquare = M:Fetch("vui", "backdrop")
-cfg.barTexture = M:Fetch("vui", "statusbar")
+cfg.whiteSquare = M:Fetch("yaui", "backdrop")
+cfg.barTexture = M:Fetch("yaui", "statusbar")
 cfg.font = M:Fetch("font", "RobotoBold")
 
 ---------------

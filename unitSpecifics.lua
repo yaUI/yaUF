@@ -1,9 +1,9 @@
 local addon, ns = ...
-local E, M = unpack(vCore);
+local E, M = unpack(yaCore);
 local cfg = ns.cfg
 local lib = ns.lib
 local oUF = ns.oUF or oUF
-assert(oUF, "vUF was unable to locate oUF.")
+assert(oUF, "yaUF was unable to locate oUF.")
 --------------
 
 local UnitSpecific = {

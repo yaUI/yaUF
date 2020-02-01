@@ -1,6 +1,6 @@
 local _, ns = ...
 local oUF = nUF or ns.oUF or oUF
-assert(oUF, "vUF was unable to locate oUF.")
+assert(oUF, "yaUF was unable to locate oUF.")
 --------------
 
 local tags = oUF.Tags
@@ -23,7 +23,7 @@ local function Short(value)
 end
 
 -- Default syntax
-oUF.Tags.Methods["vui:hpdefault"] = function(unit)
+oUF.Tags.Methods["yaui:hpdefault"] = function(unit)
 	if not UnitIsConnected(unit) then
 		return "|cff999999Off|r"
 	end
@@ -41,10 +41,10 @@ oUF.Tags.Methods["vui:hpdefault"] = function(unit)
 	local val = Short(min)
 	return val.."|cffcccccc / |r"..per.."%"
 end
-oUF.Tags.Events["vui:hpdefault"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["yaui:hpdefault"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 -- Simple percentage
-oUF.Tags.Methods["vui:hpperc"] = function(unit)
+oUF.Tags.Methods["yaui:hpperc"] = function(unit)
 	if not UnitIsConnected(unit) then
 		return "|cff999999Off|r"
 	end
@@ -61,9 +61,9 @@ oUF.Tags.Methods["vui:hpperc"] = function(unit)
 	
 	return per.."%"
 end
-oUF.Tags.Events["vui:hpperc"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["yaui:hpperc"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
-oUF.Tags.Methods["vui:hpraid"] = function(unit)
+oUF.Tags.Methods["yaui:hpraid"] = function(unit)
 	if not UnitIsConnected(unit) then
 		return "|cff999999Off|r"
 	end
@@ -77,4 +77,4 @@ oUF.Tags.Methods["vui:hpraid"] = function(unit)
 	return "-"..Short(max-min)
 end
 
-oUF.Tags.Events["vui:hpraid"] = "UNIT_NAME_UPDATE UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["yaui:hpraid"] = "UNIT_NAME_UPDATE UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"

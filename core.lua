@@ -1,9 +1,9 @@
 local addon, ns = ...
-local E, M = unpack(vCore);
+local E, M = unpack(yaCore);
 local cfg = ns.cfg
 local lib = ns.lib
 local oUF = ns.oUF or oUF
-assert(oUF, "vUF was unable to locate oUF.")
+assert(oUF, "yaUF was unable to locate oUF.")
 --------------
 
 local unpack = unpack
@@ -117,7 +117,7 @@ local function CreateCastBar(self, unit)
 
 	--Shield represents interrupt shield
 	local Shield = Castbar:CreateTexture(nil, 'OVERLAY')
-	Shield:SetTexture(M:Fetch('vui', 'shield'))
+	Shield:SetTexture(M:Fetch('yaui', 'shield'))
 	Shield:SetSize(32, 32)
 	Shield:SetPoint('CENTER', Castbar)
 
@@ -336,9 +336,9 @@ local function Shared(self, unit)
 	self:Tag(name, "[name]")
 
 	if unit == "player" or unit == "target" then
-		self:Tag(hpval, "[vui:hpdefault]")
+		self:Tag(hpval, "[yaui:hpdefault]")
 	else
-		self:Tag(hpval, "[vui:hpperc]")
+		self:Tag(hpval, "[yaui:hpperc]")
 	end
 
 	-------------------
@@ -567,27 +567,27 @@ end
 -- -----------------------------------
 -- > SPAWN UNIT
 -- -----------------------------------
-oUF:RegisterStyle("vUF", Shared)
+oUF:RegisterStyle("yaUF", Shared)
 oUF:Factory(function(self)
-	self:SetActiveStyle('vUF')
+	self:SetActiveStyle('yaUF')
 	if IsAddOnLoaded("vBars") then
-		self:Spawn('player', 'vUF_Player'):SetPoint('TOPRIGHT', UIParent, 'CENTER', -15, -200)
-		self:Spawn('target', 'vUF_Target'):SetPoint('TOPLEFT', UIParent, 'CENTER', 15, -200)
+		self:Spawn('player', 'yaUF_Player'):SetPoint('TOPRIGHT', UIParent, 'CENTER', -15, -200)
+		self:Spawn('target', 'yaUF_Target'):SetPoint('TOPLEFT', UIParent, 'CENTER', 15, -200)
 	else
-		self:Spawn('player', 'vUF_Player'):SetPoint('TOPLEFT', UIParent, 'TOPLEFT', cfg.player.portrait.width + 100, -100)
-		self:Spawn('target', 'vUF_Target'):SetPoint('TOP', UIParent, 'TOP', 0, -100)
+		self:Spawn('player', 'yaUF_Player'):SetPoint('TOPLEFT', UIParent, 'TOPLEFT', cfg.player.portrait.width + 100, -100)
+		self:Spawn('target', 'yaUF_Target'):SetPoint('TOP', UIParent, 'TOP', 0, -100)
 	end
 
-	self:Spawn('focus', 'vUF_Focus'):SetPoint('BOTTOMLEFT', vUF_Player.Portrait, 'TOPLEFT', 0, 5)
-	self:Spawn('pet', 'vUF_Pet'):SetPoint('TOPLEFT', vUF_Player.Portrait, 'BOTTOMLEFT', 0, -5)
-	self:Spawn('targettarget', 'vUF_TargetTarget'):SetPoint('BOTTOMLEFT', vUF_Target.Portrait, 'TOPLEFT', 0, 6)
+	self:Spawn('focus', 'yaUF_Focus'):SetPoint('BOTTOMLEFT', yaUF_Player.Portrait, 'TOPLEFT', 0, 5)
+	self:Spawn('pet', 'yaUF_Pet'):SetPoint('TOPLEFT', yaUF_Player.Portrait, 'BOTTOMLEFT', 0, -5)
+	self:Spawn('targettarget', 'yaUF_TargetTarget'):SetPoint('BOTTOMLEFT', yaUF_Target.Portrait, 'TOPLEFT', 0, 6)
 
 	local offset = -40
 	if not IsAddOnLoaded("vBars") then
 		offset = offset * -1
 	end
 
-	local header = self:SpawnHeader('vUF_Party', nil, 'party',
+	local header = self:SpawnHeader('yaUF_Party', nil, 'party',
 		'oUF-initialConfigFunction', [[
 			self:SetWidth(230)
 			self:SetHeight(60)
@@ -598,13 +598,13 @@ oUF:Factory(function(self)
 		'groupingOrder', 'TANK,HEALER,DAMAGER'
 	);
 
-	header:SetPoint('BOTTOMRIGHT', vUF_Player.Health,'BOTTOMLEFT', -200, 0)
+	header:SetPoint('BOTTOMRIGHT', yaUF_Player.Health,'BOTTOMLEFT', -200, 0)
 	if not IsAddOnLoaded("vBars") then
 		header:ClearAllPoints()
-		header:SetPoint('TOPLEFT', vUF_Player,'BOTTOMLEFT', 0, -40)
+		header:SetPoint('TOPLEFT', yaUF_Player,'BOTTOMLEFT', 0, -40)
 	end
 
 	if cfg.showNameplates then
-		self:SpawnNamePlates('vUF_NamePlate', ChangedTarget, cvars)
+		self:SpawnNamePlates('yaUF_NamePlate', ChangedTarget, cvars)
 	end
 end)
