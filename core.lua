@@ -111,7 +111,7 @@ local function CreateCastBar(self, unit)
 
 	--Spark
 	local Spark = Castbar:CreateTexture(nil, 'OVERLAY')
-	Spark:SetSize(2, cfg.player.castbar.height - 2)
+	Spark:SetSize(2, cfg.player.castbar.height)
 	Spark:SetColorTexture(1, 1, 1)
 
 	--SafeZone represents red latency bar on the end of the castbar
