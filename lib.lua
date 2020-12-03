@@ -31,6 +31,7 @@ lib.PostCreateIcon = function(element, button)
 	button.icon:SetDrawLayer('ARTWORK')
 
 	--Backdrop
+	Mixin(button, BackdropTemplateMixin)
 	E:CreateBackdrop(button)
 
 	-- We create a parent for aura strings so that they appear over the cooldown widget

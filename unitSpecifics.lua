@@ -29,7 +29,7 @@ local UnitSpecific = {
 			ClassPower.PostUpdate = lib.PostUpdateClassPower
 
 			for index = 1, 11 do -- have to create an extra to force __max to be different from UnitPowerMax
-				local Bar = CreateFrame('StatusBar', nil, self.Power)
+				local Bar = CreateFrame('StatusBar', nil, self.Power, "BackdropTemplate")
 				Bar:SetHeight(5)
 				Bar:SetStatusBarTexture(cfg.barTexture)
 
@@ -63,7 +63,7 @@ local UnitSpecific = {
 			Totems.PostUpdate = PostUpdateTotem
 
 			for index = 1, MAX_TOTEMS do
-				local Totem = CreateFrame('Button', nil, self.Power)
+				local Totem = CreateFrame('Button', nil, self.Power, "BackdropTemplate")
 				Totem:SetSize(24, 24)
 				Totem:SetPoint('TOPLEFT', self.Power, 'BOTTOMLEFT', (index - 1) * Totem:GetWidth(), -1)
 
@@ -92,7 +92,7 @@ local UnitSpecific = {
 
 				local Runes = {}
 				for index = 1, 6 do
-					local Rune = CreateFrame('StatusBar', nil, self.Power)
+					local Rune = CreateFrame('StatusBar', nil, self.Power, "BackdropTemplate")
 					Rune:SetSize(barWidth, 2)
 					Rune:SetStatusBarTexture(cfg.barTexture)
 
@@ -136,6 +136,7 @@ local UnitSpecific = {
 			Experience.Rested = Rested
 
 			--Backdrop
+			Mixin(Experience, BackdropTemplateMixin)
 			E:CreateBackdrop(Experience)
 
 			-- Registration
@@ -169,6 +170,7 @@ local UnitSpecific = {
 			Reputation.colorStanding = true -- Color the bar by current standing
 
 			--Backdrop
+			Mixin(Reputation, BackdropTemplateMixin)
 			E:CreateBackdrop(Reputation)
 
 			-- Registration
@@ -193,6 +195,7 @@ local UnitSpecific = {
 			end
 
 			--Backdrop
+			Mixin(ArtifactPower, BackdropTemplateMixin)
 			E:CreateBackdrop(ArtifactPower)
 
 			-- Registration

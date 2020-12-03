@@ -75,7 +75,7 @@ local function CreateCastBar(self, unit)
 	-------------------
 	-- Castbar
 	-------------------
-	local Castbar = CreateFrame("StatusBar", nil, self)
+	local Castbar = CreateFrame("StatusBar", nil, self, "BackdropTemplate")
 	Castbar:SetFrameStrata('HIGH')
 	Castbar:SetHeight(cfg.player.castbar.height)
 	Castbar:SetWidth(cfg.player.castbar.width)
@@ -397,7 +397,7 @@ local function Shared(self, unit)
 		-------------------
 		-- Highlight the unit if its our target, makes it easier for healers and general ui feedback
 		-------------------
-		local Targeted = CreateFrame("Frame", nil, self)
+		local Targeted = CreateFrame("Frame", nil, self, "BackdropTemplate")
 		Targeted:SetPoint("TOPLEFT", Health, "TOPLEFT", 0, 0)
 		Targeted:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", 0, 0)
 		Targeted:SetBackdrop({edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1})
@@ -414,7 +414,7 @@ local function Shared(self, unit)
 		-------------------
 		-- Portrait
 		-------------------
-		local Portrait = CreateFrame("PlayerModel", nil, self)
+		local Portrait = CreateFrame("PlayerModel", nil, self, "BackdropTemplate")
 		Portrait:SetHeight(unit == 'party' and cfg.player.portrait.partyHeight or cfg.player.portrait.height)
 		Portrait:SetWidth(cfg.player.portrait.width)
 		Portrait:SetFrameLevel(Health:GetFrameLevel() - 1)
